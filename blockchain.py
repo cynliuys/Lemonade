@@ -17,7 +17,7 @@ class Blockchain(object):
     db_file = 'blockchain.db'
     genesis_coinbase_data = 'The Times 03/Jan/2009 Chancellor on brink of second bailout for banks'
 
-    def __init__(self, address=None):
+    def __init__(self, subsidy=100, cointype=None, address=None):
         self._db = DB(Blockchain.db_file)
 
         try:
@@ -27,7 +27,7 @@ class Blockchain(object):
                 self._tip = None
             else:
                 cb_tx = CoinbaseTx(
-                    address, Blockchain.genesis_coinbase_data).set_id()
+                    address, subsidy, cointype, Blockchain.genesis_coinbase_data).set_id()
                 genesis = Block([cb_tx], 0).pow_of_block()
                 self._block_put(genesis)
 
@@ -89,7 +89,7 @@ class Blockchain(object):
 
         return unspent_txs
 
-    def find_spendable_outputs(self, address, amount):
+    def find_spendable_outputs(self, address, amount, cointype):
         # Finds and returns unspent outputs to reference in inputs
         accumulated = 0
         unspent_outputs = defaultdict(list)
@@ -100,7 +100,7 @@ class Blockchain(object):
                 tx_id = tx.ID
 
                 for out_idx, out in enumerate(tx.vout):
-                    if out.canbe_unlocked_with(address) and accumulated < amount:
+                    if out.canbe_unlocked_with(address) and out.cointype==cointype and accumulated < amount:
                         accumulated += out.value
                         unspent_outputs[tx_id].append(out_idx)
 

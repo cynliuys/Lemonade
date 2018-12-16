@@ -33,7 +33,7 @@ class TxInput(object):
         self._script_sig = sig
 
     def __repr__(self):
-        return 'TXInput(tx_id={0!r}, vout={1!r}, script_sig={2!r})'.format(self._id, self._vout, self._script_sig)
+        return 'TXInput(tx_id={0!r}, vout={1!r}, script_sig={2!r})'.format(self._tx_id, self._vout, self._script_sig)
 
     def can_unlock_output_with(self, unlocking):
         return self._script_sig == unlocking
@@ -52,23 +52,23 @@ class TxOutput(object):
     """ Represents a transaction output
     Args:
         value (int): Transaction output.
+        cointype (string): Type of the coin.
         pubkey (string): Script of pubkey. (whose pubkey is this?)
     Attributes:
         value (int): Transaction output.
         script_pubkey (string): Script of pubkey.
     """
-    
-    subsidy = 10
-    # the amount of reward
-    # why is the subsidy defined here
 
-    def __init__(self, value, pubkey):
+    subsidy = 100
+
+    def __init__(self, value, cointype, pubkey):
         self._value = value
+        self._cointype = cointype
         self.script_pubkey = pubkey
 
     def __repr__(self):
-        return 'TXOutput(value={0!r}, script_pubkey={1!r})'.format(
-            self._value, self.script_pubkey)
+        return 'TXOutput(value={0!r}, cointype={1!r}, script_pubkey={2!r})'.format(
+            self._value, self._cointype, self.script_pubkey)
 
     def canbe_unlocked_with(self, unlocking):
         return self.script_pubkey == unlocking
@@ -76,6 +76,11 @@ class TxOutput(object):
     @property
     def value(self):
         return self._value
+    
+    @property 
+    def cointype(self):
+        return self._cointype
+
 
 class Transaction(object):
     """ Represents a ABC transaction 
@@ -110,10 +115,12 @@ class Transaction(object):
         raise NotImplementedError
 
 
-class CoinbaseTx(Transaction):
+class CoinbaseTx(Transaction): # creates a new coin here
+    
     """ Represents a coinbase transaction 
     Args:
         to (string): address of coinbase.
+        cointype (string): type of the new coin.
         data (string): script of signature.
     Attributes:
         _id (tytes): Transaction ID.
@@ -121,13 +128,13 @@ class CoinbaseTx(Transaction):
         _vout (list): List of transaction output.
     """
 
-    def __init__(self, to, data=None):
+    def __init__(self, to, subsidy, cointype, data=None):
         if not data:
-            data = 'Reward to {0}'.format(to)
+            data = 'Reward {0} {1} coins to {2}'.format(subsidy, cointype, to)
 
         self._id = None
         self._vin = [TxInput('', -1, data)]
-        self._vout = [TxOutput(TxOutput.subsidy, to)]
+        self._vout = [TxOutput(subsidy, cointype, to)]
 
     def __repr__(self):
         return 'CoinbaseTx(id={0!r}, vin={1!r}, vout={2!r})'.format(
@@ -143,8 +150,6 @@ class CoinbaseTx(Transaction):
     #         self._vin[0].vout == -1
 
 
-
-
 class UTXOTx(Transaction):
     """ Represents a UTXO transaction 
     Args:
@@ -158,12 +163,12 @@ class UTXOTx(Transaction):
         _vout (list): List of transaction output.
     """
     
-    def __init__(self, from_addr, to_addr, amount, bc):
+    def __init__(self, from_addr, to_addr, amount, cointype, bc):
         inputs = []
         outputs = []
 
         self.log = Logger('UTXOTx')
-        acc, valid_outputs = bc.find_spendable_outputs(from_addr, amount)
+        acc, valid_outputs = bc.find_spendable_outputs(from_addr, amount, cointype)
         if acc < amount:
             self.log.error('Not enough funds')
             sys.exit()
@@ -175,9 +180,9 @@ class UTXOTx(Transaction):
                 inputs.append(input)
         
         # Build a list of outputs
-        outputs.append(TxOutput(amount, to_addr))
+        outputs.append(TxOutput(amount, cointype, to_addr))
         if acc > amount:
-            outputs.append(TxOutput(acc-amount, from_addr))
+            outputs.append(TxOutput(acc-amount, cointype, from_addr))
         
         self._id = None
         self._vin = inputs
