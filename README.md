@@ -36,8 +36,8 @@ There are various reference websites categorized by their objectives.
 
 ## Authors
 
-* **Cynthia Liu** - *Initial work*
-* **Danny tsai** - *Initial work*
+* **Cynthia Liu** - *Initial work* - [DannyTsai](https://github.com/Chung-Hung)
+* **Danny tsai** - *Initial work* - [CynthiaYLiu](https://github.com/CynthiaYLiu)
 * **Pierre Su** - *Initial work* - [PierreSue](https://github.com/PierreSue)
 
 ## License
