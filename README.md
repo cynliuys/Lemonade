@@ -16,7 +16,7 @@ PBFT(Practical BFT) solve the effiency problem of BFT, from O(exponential) to O(
 
 ### What is PBFT
 1. pre-prepare:
-* The
+  * The
 
 ## Reference Pages
 
