@@ -15,8 +15,25 @@ The members should be pre-defined and identified rather than participating at wi
 PBFT(Practical BFT) solve the effiency problem of BFT, from O(exponential) to O(polynomial). This algorithm asserts the liveness and safety only with (n-1)/3 fault tolerance, so the number of bodes must be N >= 3f+1, where f means the number of fault nodes. Therefore, the whole blockchain are required to contain at least 4 nodes for 1 fault tolerance.
 
 ### What is PBFT
+
+First of all, all the evaluation nodes elect a 'primary'(like a leader) to be responsible for new block generation and broadcast to all the evaluation nodes.(maybe pre-elect or take turns) At the same time, the other evalution nodes are called 'backup'. And 'view' means the combination of 1 primary and many backups. To reach a consensus, there are three stages below:
+
 1. pre-prepare:
-  * The
+  * A client send a request to the primary and the primary goes to the stage 'pre-prepare', generates a new block and broadcast to all the other backups.
+  * After that, all the evaluation nodes(including the primary) switch to the next stage 'prepare'.
+
+2. prepare
+  * wait until 2f+1 confirms (accept or reject)
+  * if timeout, change view, elect a new primary ,and go back to step1.
+
+3. commit
+  * broadcast again to tell all the other evaluation nodes that you have more than 2f+1 evalation nodes comfirm.
+  * wait until 2f+1 commits and reply back to client
+  * if timeout, change view, elect a new primary, but keep te information before and stay at step3.
+
+#### How to solve the problem of view change 
+
+At 'view change stage', 
 
 ## Reference Pages
 
@@ -30,6 +47,7 @@ There are various reference websites categorized by their objectives.
 ### PBFT
 * [samsonhoi](https://www.samsonhoi.com/570/blockchain-pbft?fbclid=IwAR09yIO8ZefBw4HyDpDH-9qYwobxeDchqhO-SX5O4DEpQki-rMz3N6BUqfA)
 * [Baidu](https://baike.baidu.com/item/%E6%8B%9C%E5%8D%A0%E5%BA%AD%E5%B0%86%E5%86%9B%E9%97%AE%E9%A2%98?fbclid=IwAR3hlrfV8X5zhO_Dfa6BBHfzfdHOsEjIU-_XbuuQS2ZrqCk5x3DWqpKSTEQ)
+* [saowen]https://hk.saowen.com/a/a92ab374b7ce3366948dae182747f662919efd7282dc87cad75ec32470d98a40()
 
 ### STO(Security Token Offering)
 * [blockchainappfactory](https://www.blockchainappfactory.com/security-token-offering-services)
