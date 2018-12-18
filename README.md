@@ -21,6 +21,7 @@ First of all, all the evaluation nodes elect a 'primary'(like a leader) to be re
 1. pre-prepare:
   * A client send a request to the primary and the primary goes to the stage 'pre-prepare', generates a new block and broadcast to all the other backups.
   * After that, all the evaluation nodes(including the primary) switch to the next stage 'prepare'.
+  * If the client doesn't receive the reply for a long time, the client can choose to send the request to all the evaluation node, and switch to the 'change view' stage.
 
 2. prepare
   * wait until 2f+1 confirms (accept or reject)
@@ -29,11 +30,11 @@ First of all, all the evaluation nodes elect a 'primary'(like a leader) to be re
 3. commit
   * broadcast again to tell all the other evaluation nodes that you have more than 2f+1 evalation nodes comfirm.
   * wait until 2f+1 commits and reply back to client
-  * if timeout, change view, elect a new primary, but keep te information before and stay at step3.
+  * if timeout, change view, elect a new primary, keep the information before and go back to step1..
 
 #### How to solve the problem of view change 
 
-At 'view change stage', 
+'View change' stage ensures that the whole system can still work even though the primary is the node who is at fault. If one's timeout happens, the node can broadcast the signal 'view-change' to all the other nodes. If the v+1 node receive more than 2f+1 view-change signal (include itself), new-view happens, and the v+1 node broadcast to all the evaluation nodes that it becomes the new primary.
 
 ## Reference Pages
 
