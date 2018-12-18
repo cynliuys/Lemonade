@@ -47,7 +47,7 @@ There are various reference websites categorized by their objectives.
 ### PBFT
 * [samsonhoi](https://www.samsonhoi.com/570/blockchain-pbft?fbclid=IwAR09yIO8ZefBw4HyDpDH-9qYwobxeDchqhO-SX5O4DEpQki-rMz3N6BUqfA)
 * [Baidu](https://baike.baidu.com/item/%E6%8B%9C%E5%8D%A0%E5%BA%AD%E5%B0%86%E5%86%9B%E9%97%AE%E9%A2%98?fbclid=IwAR3hlrfV8X5zhO_Dfa6BBHfzfdHOsEjIU-_XbuuQS2ZrqCk5x3DWqpKSTEQ)
-* [saowen]https://hk.saowen.com/a/a92ab374b7ce3366948dae182747f662919efd7282dc87cad75ec32470d98a40()
+* [saowen](https://hk.saowen.com/a/a92ab374b7ce3366948dae182747f662919efd7282dc87cad75ec32470d98a40)
 
 ### STO(Security Token Offering)
 * [blockchainappfactory](https://www.blockchainappfactory.com/security-token-offering-services)
