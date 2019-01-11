@@ -1,10 +1,9 @@
-# finished?(how do we import redis)
 import pickle
 
-# apparently the db should be a key-value db
 
 class BaseDB(object):
     pass
+
 
 class DB(BaseDB):
 

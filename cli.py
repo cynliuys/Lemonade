@@ -1,6 +1,9 @@
 #finished
 import argparse
 
+import utils
+from wallet import Wallet
+from wallets import Wallets
 from blockchain import Blockchain
 from transaction import UTXOTx, CoinbaseTx
 from pow import Pow
@@ -8,20 +11,24 @@ from pow import Pow
 def new_parser():
     parser = argparse.ArgumentParser()
     sub_parser = parser.add_subparsers(help='commands')
+    
     # A print command
     print_parser = sub_parser.add_parser(
         'print', help='Print all the blocks of the blockchain')
     print_parser.add_argument('--print', dest='print', action='store_true')
+    
     # A getbalance command
     balance_parser = sub_parser.add_parser(
         'getbalance', help='Get balance of ADDRESS')
     balance_parser.add_argument(
         '--address', type=str, dest='balance_address', help='ADDRESS of balance')
+    
     # A printblock command
     printblock_parser = sub_parser.add_parser(
         'printblock', help='Print block whose height is HEIGHT')
     printblock_parser.add_argument(
         '--height', type=int, dest='block_height', help='HEIGHT of block')    
+    
     # A createblockchain command
     bc_parser = sub_parser.add_parser(
         'createblockchain', help='Create a blockchain and send genesis block reward SUBSIDY COINTYPE coins to ADDRESS')
@@ -31,6 +38,13 @@ def new_parser():
         '--subsidy', type=int, dest='subsidy', help='SUBSIDY')
     bc_parser.add_argument(
         '--cointype', type=str, dest='coin_type', help='COINTYPE')
+    
+    # A createwallet command
+    bw_parser = sub_parser.add_parser(
+        'createwallet', help='Create a wallet')
+    bw_parser.add_argument(
+        '--wallet', type=str, dest='wallet', help='WALLET')
+    
     # A createcoin command
     ac_parser = sub_parser.add_parser(
         'addcoin', help='Add a new coin COINTYPE and send SUBSIDY COINTYPE coins to ADDRESS')
@@ -40,6 +54,7 @@ def new_parser():
         '--cointype', type=str, dest='coin_type', help='COINTYPE')
     ac_parser.add_argument(
         '--address', type=str, dest='add_coin_address', help='ADDRESS')
+    
     # A send command
     send_parser = sub_parser.add_parser(
         'send', help='Send AMOUNT of COINTYPE coins from FROM address to TO')
@@ -58,8 +73,9 @@ def new_parser():
 def get_balance(address):
     bc = Blockchain()
 
+    pubkey_hash = utils.address_to_pubkey_hash(address)
     balance = dict()
-    UTXOs = bc.find_utxo(address)
+    UTXOs = bc.find_utxo(pubkey_hash)
 
     for out in UTXOs:
         if out.cointype not in balance.keys():
@@ -70,6 +86,15 @@ def get_balance(address):
     print('----------------------')
     for c,b in balance.items():
         print('{0}: {1}'.format(c, b))
+
+def create_wallet():
+    wallets = Wallets()
+    wallet = Wallet()
+    address = wallet.address
+    wallets.add_wallet(address, wallet)
+    wallets.save_to_file()
+
+    print("Your new address: {}".format(address))
 
 
 def create_blockchain(subsidy, cointype, address):
@@ -126,6 +151,9 @@ if __name__ == '__main__':
             hasattr(args, 'subsidy'):
         create_blockchain(args.subsidy, args.coin_type, args.blockchain_address)
     
+    if hasattr(args, 'wallet'):
+        create_wallet()
+
     if hasattr(args, 'add_coin_address'):
         add_coin(args.subsidy, args.coin_type, args.add_coin_address)
 

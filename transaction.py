@@ -2,6 +2,9 @@
 import sys
 import pickle 
 import utils
+import ecdsa
+import base58
+import wallets as ws
 try:
     from logbook import Logger
     Logger = Logger   # Does nothing except it shuts up pyflakes annoying error
@@ -27,17 +30,21 @@ class TxInput(object):
         _vout (int): Transaction output value.
         _script_sig (string): Signature script.
     """
-    def __init__(self, txid, vout, sig):
+    def __init__(self, txid, vout, sig, pubkey):
         self._tx_id = utils.encode(txid) #txid of former transaction
         self._vout = vout # the index of this TxInput among TxInputs
         self._script_sig = sig
+        self._public_key = pubkey
+
 
     def __repr__(self):
-        return 'TXInput(tx_id={0!r}, vout={1!r}, script_sig={2!r})'.format(self._tx_id, self._vout, self._script_sig)
+        return 'TXInput(tx_id={0!r}, vout={1!r}, signature={2!r}, public_key={3!r})'.format(
+            self._tx_id, self._vout, self._script_sig, self._public_key)
 
-    def can_unlock_output_with(self, unlocking):
-        return self._script_sig == unlocking
-        # wtf is _script_sig
+    def uses_key(self, pubkey_hash):
+        # checks whether the address initiated the transaction
+        pubkey_hash = utils.hash_public_key(self._public_key)
+        return pubkey_hash == pubkey_hash
 
     @property
     def tx_id(self):
@@ -46,6 +53,22 @@ class TxInput(object):
     @property
     def vout(self):
         return self._vout
+
+    @property
+    def signature(self):
+        return self._sig
+
+    @property
+    def public_key(self):
+        return self._public_key
+
+    @signature.setter
+    def signature(self, sig):
+        self._sig = sig
+
+    @public_key.setter
+    def public_key(self, public_key):
+        self._public_key = public_key
 
 
 class TxOutput(object):
@@ -61,17 +84,23 @@ class TxOutput(object):
 
     subsidy = 100
 
-    def __init__(self, value, cointype, pubkey):
+    def __init__(self, value, cointype, address):
         self._value = value
         self._cointype = cointype
-        self.script_pubkey = pubkey
+        self._public_key_hash = self._lock(address)
+
+    @staticmethod
+    def _lock(address):
+        # import pdb
+        # pdb.set_trace()
+        return utils.address_to_pubkey_hash(address)
 
     def __repr__(self):
-        return 'TXOutput(value={0!r}, cointype={1!r}, script_pubkey={2!r})'.format(
-            self._value, self._cointype, self.script_pubkey)
+        return 'TxOutput(value={0!r}, cointype={1!r}, script_pubkey={2!r})'.format(
+            self._value, self._cointype, self._public_key_hash)
 
-    def canbe_unlocked_with(self, unlocking):
-        return self.script_pubkey == unlocking
+    def is_locked_with_key(self, pubkey_hash):
+        return self._public_key_hash == pubkey_hash
 
     @property
     def value(self):
@@ -81,6 +110,9 @@ class TxOutput(object):
     def cointype(self):
         return self._cointype
 
+    @property
+    def public_key_hash(self):
+        return self._public_key_hash
 
 class Transaction(object):
     """ Represents a ABC transaction 
@@ -109,6 +141,10 @@ class Transaction(object):
         # sets ID of a transaction
         self._id = utils.sum256(pickle.dumps(self))
         return self
+    
+    def hash(self):
+        # returns the hash of the Transaction
+        return utils.sum256(pickle.dumps(self))
 
     @abstractclassmethod
     def tx_type(self):
@@ -133,7 +169,7 @@ class CoinbaseTx(Transaction): # creates a new coin here
             data = 'Reward {0} {1} coins to {2}'.format(subsidy, cointype, to)
 
         self._id = None
-        self._vin = [TxInput('', -1, data)]
+        self._vin = [TxInput('', -1, None, data)]
         self._vout = [TxOutput(subsidy, cointype, to)]
 
     def __repr__(self):
@@ -168,7 +204,12 @@ class UTXOTx(Transaction):
         outputs = []
 
         self.log = Logger('UTXOTx')
-        acc, valid_outputs = bc.find_spendable_outputs(from_addr, amount, cointype)
+        wallets = ws.Wallets()
+        wallet = wallets.get_wallet(from_addr)
+        pubkey_hash = utils.hash_public_key(wallet.public_key)
+        
+        acc, valid_outputs = bc.find_spendable_outputs(pubkey_hash, amount, cointype)
+        
         if acc < amount:
             self.log.error('Not enough funds')
             sys.exit()
@@ -176,7 +217,7 @@ class UTXOTx(Transaction):
         # Build a list of inputs
         for tx_id, outs in valid_outputs.items():
             for out in outs:
-                input = TxInput(tx_id, out, from_addr)
+                input = TxInput(tx_id, out, None, wallet.public_key)
                 inputs.append(input)
         
         # Build a list of outputs
@@ -191,6 +232,62 @@ class UTXOTx(Transaction):
     def __repr__(self):
         return 'UTXOTx(id={0!r}, vin={1!r}, vout={2!r})'.format(
             self._id, self._vin, self._vout)
+            
+#---------------------------not finished------------------------------
 
     def tx_type(self):
         return u'UTXO'
+    
+    def _trimmed_copy(self):
+        inputs = []
+        outputs = []
+
+        for vin in self.vin:
+            inputs.append(TxInput(vin.tx_id, vin.vout, None, None))
+
+        for vout in self.vout:
+            outputs.append(TxOutput(vout.value, vout.cointype, vout.public_key_hash))
+
+        return Transaction(self.ID, inputs, outputs)
+
+    def sign(self, priv_key, prev_txs):
+        for vin in self.vin:
+            if not prev_txs[vin.tx_id].ID:
+                self.log.error("Previous transaction is not correct")
+
+        tx_copy = self._trimmed_copy()
+
+        for in_id, vin in enumerate(tx_copy.vin):
+            prev_tx = prev_txs[vin.tx_id]
+            tx_copy.vin[in_id].signature = None
+            tx_copy.vin[in_id].public_key = prev_tx.out[vin.vout].public_key_hash
+            tx_copy.ID = tx_copy.hash()
+            tx_copy.vin[in_id].public_key = None
+
+            sk = ecdsa.SigningKey.from_string(
+                priv_key.hex(), curve=ecdsa.SECP256k1)
+            sig = sk.sign(tx_copy.ID)
+
+            self.vin[in_id].signature = sig
+
+    def verify(self, prev_txs):
+        for vin in self.vin:
+            if not prev_txs[vin.tx_id].ID:
+                self.log.error("Previous transaction is not correct")
+
+        tx_copy = self._trimmed_copy()
+
+        for in_id, vin in enumerate(tx_copy.vin):
+            prev_tx = prev_txs[vin.tx_id]
+            tx_copy.vin[in_id].signature = None
+            tx_copy.vin[in_id].public_key = prev_tx.out[vin.vout].public_key_hash
+            tx_copy.ID = tx_copy.hash()
+            tx_copy.vin[in_id].public_key = None
+
+            sig = self.vin[in_id].signature
+            vk = ecdsa.VerifyingKey.from_string(
+                vin.public_key[2:].decode('hex'), curve=ecdsa.SECP256k1)
+            if not vk.verify(sig, tx_copy.ID):
+                return False
+
+        return True
