@@ -2,6 +2,7 @@ import socket
 HOST = ''
 
 if __name__ == '__main__':
+	
 	socketNum = input("How many SOCKETs this server should creat? ")
 	PORT = []
 	s = []
