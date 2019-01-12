@@ -74,14 +74,14 @@ class State(object):
             cli_message = self.clisocket.recv(2048)
             print('\tReceive message from the client.')
 
-            if 'key pair' in cli_message.decode('utf-8'):
+            if b'key pair' in cli_message:
                 self._current_state = 'Gensig'
-            elif 'Create wallet' in cli_message.decode('utf-8'):
+            elif b'Create wallet' in cli_message:
                 data = cli_message.decode('utf-8')
                 data = data.split()
                 privatekey, address  = F.create_wallet(data[-1])
                 # send 2 times, encode by 'utf-8'
-                self.clisocket.send(privatekey.encode('utf-8'))
+                self.clisocket.send(privatekey)
                 self.clisocket.send(address.encode('utf-8'))
                 self._current_state = 'Wait'
 
@@ -91,7 +91,7 @@ class State(object):
         else:
             # receive message from primary
             data = sockets[0][0].recv(2048)
-            self.command = data.decode('utf-8')
+            self.command = data
             print('\tReceive message from the primary.')
             self._current_state = 'Prepare'
 
@@ -100,33 +100,33 @@ class State(object):
         # Generate a key pair and send back to the client
         ## format = 'CoinType'
         CoinType = self.clisocket.recv(2048).decode('utf-8')
-        print("recv", CoinType)
         sign = self.key.generateTypeSign(CoinType)
-        print("gen sign")
         self.clisocket.send(sign)
-        print("send")
         self._current_state = 'Wait'
 
     def pre_prepare(self, sockets):
         print('State 2 : Preprepare')
         # build block
-        data = self.clisocket.recv(2048).decode('utf-8')
+        data = self.clisocket.recv(2048)
         ## parse data
         ## format = 'subsidy cointype name typesig (addcoin)'
         ## format = 'from_name to_name cointype amount sig (send)'
-        for s in sockets:
-            s[0].send(data.encode('utf-8'))
+        for s in sockets[:-1]:
+            s[0].send(data)
         self.command = data
+        sockets[-1][0].send(b'New request !')
         self._current_state = 'Prepare'
 
     def prepare(self, sockets):
         print('State 3 : Prepare')
         ## send
+        '''
         for s in sockets:
             s[0].send(b'Received')
         ## receive
         for s in sockets[:-1]: 
             _ = s[0].recv(2048)
+        '''
         print('Received from all the other nodes.')
 
         self._current_state = 'Commit'
@@ -150,17 +150,38 @@ class State(object):
         if self.primary :
             if agree>=self.limit:
                 # Create a block and add into blockchain(dump)
-                ## format = 'subsidy cointype name typesig (addcoin)'
-                ## format = 'from_name to_name cointype amount sig (send)'
-                comList = self.command.split()
-                if comList[-1] == '(send)':
+                ## format = 'subsidy(int) cointype name typesig (addcoin)'
+                ## format = 'from_name to_name cointype amount(int) sig (send)'
+                comList = self.command.split(b'   ')
+                if comList[-1] == b'(send)':
                     bc = Blockchain()
-                    newBlock = F.send(comList[0], comList[1], comList[2], comList[3])
+                    newBlock = F.send(comList[0].decode('utf-8'), comList[1].decode('utf-8'), comList[2].decode('utf-8'), int(comList[3].decode('utf-8')))
                     bc._block_put(newBlock)
                 elif self.blockchain == None:
-                    F.create_blockchain(comList[0], comList[1], comList[2])
+                    print("create blockchain")
+                    F.create_blockchain(int(comList[0].decode('utf-8')), comList[1].decode('utf-8'), comList[2].decode('utf-8'))
                     self.blockchain = 1
                 else:
-                    F.add_coin(comList[0], comList[1], comList[2])
+                    F.add_coin(int(comList[0].decode('utf-8')), comList[1].decode('utf-8'), comList[2].decode('utf-8'))
 
+
+            # print 
+            name = 'Pierre'
+            bc = Blockchain()
+            wallets = Wallets()
+            address = wallets.get_address_from_name(name)
+            pubkey_hash = utils.address_to_pubkey_hash(address)
+            balance = dict()
+            UTXOs = bc.find_utxo(pubkey_hash)
+
+            for out in UTXOs:
+                if out.cointype not in balance.keys():
+                    balance[out.cointype] = 0 
+                balance[out.cointype] += out.value
+
+            print('Balance of {0}:'.format(name))
+            print('----------------------')
+            for c,b in balance.items():
+                print('{0}: {1}'.format(c, b))
+            
         self._current_state = 'Wait'

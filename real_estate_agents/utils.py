@@ -1,4 +1,7 @@
 import time 
+import codecs
+import binascii
+import ecdsa
 from server_key import ServerKey
 import blockchain.utils as utils
 from blockchain.wallet import Wallet
@@ -80,23 +83,27 @@ def send(from_name, to_name, cointype, amount):
 
 
 def evaluate(command, key):
-    command = command.split()
     ## format = 'subsidy cointype name typesig (addcoin)'
     ## format = 'from_name to_name cointype amount sig (send)'
-    if command[-1] == '(addcoin)':
-        if key.verifyTypeSign(command[1], command[3]):
+    command = command.split(b'   ')
+    print(command)
+    if command[-1] == b'(addcoin)':
+        if key.verifyTypeSign(command[1].decode('utf-8'), command[3]):
             return 'Agree'
         return 'Disagree'
 
-    elif command[-1] == '(send)':
+    elif command[-1] == b'(send)':
         bc = Blockchain()
-        if not check_tx(bc, command[0], command[2], command[3]):
+        if not check_tx(bc, command[0].decode('utf-8'), command[2].decode('utf-8'), command[3].decode('utf-8')):
             return 'Disagree'
         wallets = Wallets()
-        wallet = wallets.get_wallet_from_name(command[0])
+        wallet = wallets.get_wallet_from_name(command[0].decode('utf-8'))
+        
+        '''Wallet public key not good
         vk = ecdsa.VerifyingKey.from_string(wallet._public_key, curve=ecdsa.SECP256k1)
         if not vk.verify(command[-2], 'yes'):
             return 'Disagree'
+        '''
         return 'Agree'
 
 

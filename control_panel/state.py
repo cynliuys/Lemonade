@@ -37,7 +37,7 @@ class State(object):
         print('State 1 : Wait ...')
         data = clients[0].recv(2048)
         print('\tReceive message from the primary')
-        print('\t  primary: {}'.format(data.decode('ascii')))
+        print('\t  primary: {}'.format(data.decode('utf-8')))
 
         self._current_state = 'Pre_prepare'
 
@@ -46,15 +46,17 @@ class State(object):
         print('State 2 : Preprepare')
         data = clients[0].recv(2048)
         print('\tReceive message from the primary')
-        print('\t  primary: {}'.format(data.decode('ascii')))
+        print('\t  primary: {}'.format(data.decode('utf-8')))
         
         self._current_state = 'Prepare'
 
     def prepare(self, clients):
         print('State 3 : Prepare')
+        '''
         # receive message from all the nodes
         for id, client in enumerate(clients):
             data = client.recv(2048)
+        '''
         print('Received from all the other nodes.')
 
         self._current_state = 'Commit'

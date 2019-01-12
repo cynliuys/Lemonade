@@ -205,7 +205,7 @@ class UTXOTx(Transaction):
 
         self.log = Logger('UTXOTx')
         wallets = ws.Wallets()
-        wallet = wallets.get_wallet(from_addr)
+        wallet = wallets.get_wallet_from_addr(from_addr)
         pubkey_hash = utils.hash_public_key(wallet.public_key)
         
         acc, valid_outputs = bc.find_spendable_outputs(pubkey_hash, amount, cointype)

@@ -8,8 +8,8 @@ class Wallets(object):
         wallets (dict): a wallets dict.
     """
 
-    wallet_file = '~/Desktop/Lemonade/database/wallet.dat'
-    namelist_file = '~/Desktop/Lemonade/database/namelist.dat'
+    wallet_file = '/Users/cynthialiu/Desktop/Lemonade/database/wallet.dat'
+    namelist_file = '/Users/cynthialiu/Desktop/Lemonade/database/namelist.dat'
 
     def __init__(self):
 
@@ -24,7 +24,7 @@ class Wallets(object):
 
     def add_wallet(self, addr, wallet):
         self.wallets[addr] = wallet
-        self.namelist[wallet.name] = addr
+        self.namelist[wallet._name] = addr
 
     def get_addresses(self):
         return [addr for addr in self.wallets.keys()]

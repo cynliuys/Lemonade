@@ -97,7 +97,7 @@ def privatekey_to_wif(key):
 def privatekey_to_publickey(key):
     sk = ecdsa.SigningKey.from_string(key, curve=ecdsa.SECP256k1)
     vk = sk.get_verifying_key()
-    return vk.to_string()
+    return '04' + decode(binascii.hexlify(vk.to_string()))
 
 
 def encode(str, code='utf-8'):

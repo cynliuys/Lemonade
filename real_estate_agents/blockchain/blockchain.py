@@ -14,7 +14,7 @@ class Blockchain(object):
         _db (DB): DB instance
     """
     latest = 'l'
-    db_file = '~/Desktop/Lemonade/database/blockchain.db'
+    db_file = '/Users/cynthialiu/Desktop/Lemonade/database/blockchain.db'
     genesis_coinbase_data = 'The Times 03/Jan/2009 Chancellor on brink of second bailout for banks'
 
     def __init__(self, subsidy=100, cointype=None, address=None):
