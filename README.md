@@ -6,6 +6,9 @@ The  reference pages of PBFT/BFT go here.
 ## Proposal of our works
 * [GoogleDoc](https://docs.google.com/document/d/1ZApj2F91H3XlKshC2FbxyRc39nQODNzGCMPabv3QAhE/edit?fbclid=IwAR0j2m9nXTKY7zaGl7bshuHgs3M6v_-9oztuuhc_9ooqvWoqJfTMNJhpB7E)
 
+### Abstract
+As STO(Security Token Offering) is gaining more and more attention, we consider that the concept can be applied to the real-estate transactions. Meanwhile, by introducing the consortium blockchain, the mechanism brings a lot of advantages to the market. First of all, the users can trade houses without being charged the additional service fee. Moreover, the users can obtain the real-time information on the real-estate market which is shared to everyone. And the most important feature is that a house can be owned by a crowd of people at the same time as long as they possess the corresponding tokens.
+
 ## Concepts about Our projects
 
 ### Consortium Chain
