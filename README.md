@@ -19,19 +19,19 @@ PBFT(Practical BFT) solve the effiency problem of BFT, from O(exponential) to O(
 
 ### What is PBFT
 
-First of all, all the evaluation nodes elect a 'primary'(like a leader) to be responsible for new block generation and broadcast to all the evaluation nodes.(maybe pre-elect or take turns) At the same time, the other evalution nodes are called 'backup'. And 'view' means the combination of 1 primary and many backups. To reach a consensus, there are three stages below:
+First of all, all the verification nodes elect a 'primary'(like a leader) to be responsible for new block generation and broadcast to all the verification nodes.(maybe pre-elect or take turns) At the same time, the other evalution nodes are called 'backup'. And 'view' means the combination of 1 primary and many backups. To reach a consensus, there are three stages below:
 
 1. pre-prepare:
   * A client send a request to the primary and the primary goes to the stage 'pre-prepare', generates a new block and broadcast to all the other backups.
-  * After that, all the evaluation nodes(including the primary) switch to the next stage 'prepare'.
-  * If the client doesn't receive the reply for a long time, the client can choose to send the request to all the evaluation node, and switch to the 'change view' stage.
+  * After that, all the verification nodes(including the primary) switch to the next stage 'prepare'.
+  * If the client doesn't receive the reply for a long time, the client can choose to send the request to all the verification node, and switch to the 'change view' stage.
 
 2. prepare
   * wait until 2f+1 confirms (accept or reject)
   * if timeout, change view, elect a new primary ,and go back to step1.
 
 3. commit
-  * broadcast again to tell all the other evaluation nodes that you have more than 2f+1 evalation nodes comfirm.
+  * broadcast again to tell all the other verification nodes that you have more than 2f+1 evalation nodes comfirm.
   * wait until 2f+1 commits and reply back to client
   * if timeout, change view, elect a new primary, keep the information before and go back to step1..
 
@@ -40,7 +40,7 @@ By representing a house as a pile of tokens, it is possible that a house can be 
 
 #### How to solve the problem of view change 
 
-'View change' stage ensures that the whole system can still work even though the primary is the node who is at fault. If one's timeout happens, the node can broadcast the signal 'view-change' to all the other nodes. If the v+1 node receive more than 2f+1 view-change signal (include itself), new-view happens, and the v+1 node broadcast to all the evaluation nodes that it becomes the new primary.
+'View change' stage ensures that the whole system can still work even though the primary is the node who is at fault. If one's timeout happens, the node can broadcast the signal 'view-change' to all the other nodes. If the v+1 node receive more than 2f+1 view-change signal (include itself), new-view happens, and the v+1 node broadcast to all the verification nodes that it becomes the new primary.
 
 ## Reference Pages
 
