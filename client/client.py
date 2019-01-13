@@ -16,6 +16,11 @@
 4.Send coin
     (1)Send 'New request'
     (2)Send 'from_name to_name cointype amount sig (send)'
+    (3)Return the balance of from_name and to_name
+
+5.Get balance 
+    (1)Send 'get balance name'
+    (2)Return the balance of the name 
 
 '''
 import socket
@@ -46,35 +51,29 @@ def addWallet(s, name):
 def addCoin(s, subsidy, cointype, name, typesig):
     data = str(subsidy).encode('utf-8') + b'   ' + cointype.encode('utf-8') + b'   ' + \
                 name.encode('utf-8') + b'   ' + typesig + b'   (addcoin)'
-    '''
-    print(typesig)
-    print(binascii.hexlify(typesig))
-    print(codecs.decode(binascii.hexlify(typesig), 'hex_codec'))
-    print(binascii.b2a_qp(codecs.decode(binascii.hexlify(typesig), 'hex_codec')))
-    print("---------------------------------------")
-    typesig = binascii.b2a_qp(codecs.decode(binascii.hexlify(typesig), 'hex_codec'))
-
-    print(typesig)
-    print(binascii.a2b_qp(typesig))
-    print(codecs.encode(binascii.a2b_qp(typesig), 'hex_codec'))
-    print(binascii.a2b_hex(codecs.encode(binascii.a2b_qp(typesig), 'hex_codec')))
-
-    # print(type(codecs.decode(binascii.hexlify(typesig), 'hex_codec')))
-    data = str(subsidy) + ' ' + cointype + ' ' + name + ' ' + typesig + ' (addcoin)'
     s.send(b'New request')
-    s.send(data.encode('utf-8'))
-    '''
-    s.send(b'New request')
+    time.sleep(1)
     s.send(data)
+    result = s.recv(2048).decode('utf-8')
+    return result
+
 
 
 def sendCoin(s, from_name, to_name, cointype ,amount ,sig):
     s.send(b'New request')
-
     data = from_name.encode('utf-8') + b'   ' + to_name.encode('utf-8') + b'   ' + \
            cointype.encode('utf-8') + b'   ' + str(amount).encode('utf-8') + b'   ' +\
            sig + b'   ' + b'(send)'
     s.send(data)
+    balance = s.recv(2048)
+    return balance.decode('utf-8')
+
+
+def getBalance(s, name):
+    data = 'get balance ' + name
+    s.send(data.encode('utf-8'))
+    balance = s.recv(2048)
+    return balance
 
 
 if __name__ == '__main__':
@@ -82,31 +81,53 @@ if __name__ == '__main__':
     s.connect((HOST, port))
 
 
-    print("Step1 : createType")
-    sign = createType(s, 'QQ')
-    print(binascii.hexlify(sign))
+    print("Step1 : createType QQ and RR")
+    sign1 = createType(s, 'QQ')
+    sign2 = createType(s, 'RR')
+
+    time.sleep(1)
 
     print("Step2 : addWallet")
     privateKey1, addr1 = addWallet(s, 'Cynthia')
-    print(privateKey1)
-    print(addr1)
+    print('\t-Cynthia is finished !')
     privateKey2, addr2 = addWallet(s, 'Pierre')
-    print(privateKey2)
-    print(addr2)
+    print('\t-Pierre is finished !')
+
+    time.sleep(1)
 
     print("Step3 : addCoin")
-    addCoin(s, 50, 'QQ', 'Cynthia', sign)
-    
+    result = addCoin(s, 50, 'QQ', 'Cynthia', sign1)
+    print(result)
     time.sleep(2)
+    
+    result = addCoin(s, 50, 'RR', 'Pierre', sign2)
+    print(result)
+    
+    
+    time.sleep(1)
 
     print("Step4 : sendCoin")
     sk = ecdsa.SigningKey.from_string(privateKey1, curve=ecdsa.SECP256k1)
     sig = sk.sign('yes'.encode('UTF-8'))
-    sendCoin(s, 'Cynthia', 'Pierre', 'QQ' ,10 ,sig)
+    balance = sendCoin(s, 'Cynthia', 'Pierre', 'QQ' ,10 ,sig)
+    print('Cynthia balance :\n'+ balance)
+
+    time.sleep(1)
+    
+    sk = ecdsa.SigningKey.from_string(privateKey2, curve=ecdsa.SECP256k1)
+    sig = sk.sign('yes'.encode('UTF-8'))
+    balance = sendCoin(s, 'Pierre', 'Cynthia', 'RR' ,20 ,sig)
+    print('Pierre balance :\n'+ balance)
+    
 
 
+    time.sleep(1)
 
-
+    print("step5: ask for balance")
+    A_balance = getBalance(s, 'Cynthia')
+    B_balance = getBalance(s, 'Pierre')
+    print('Cynthia balance :', A_balance.decode('utf-8'))
+    print('Pierre balance :\n'+ B_balance.decode('utf-8'))
 
     s.close()
 

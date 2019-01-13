@@ -22,6 +22,9 @@ States = ['Wait', 'Pre_prepare', 'Prepare', 'Commit', 'Gensig']
         Ask for key pair :
             Wait -> gensig -|
             ^---------------|
+        Ask for balance ; create wallet :
+            Wait -|
+            ^-----|
 
     2. backups :
         Wait -> prepare -> commit -|
@@ -70,6 +73,7 @@ class State(object):
             # receive message from clients
             ## format = 'Get key pair'
             ## format = 'Create wallet name'
+            ## format = 'get balance name'
             ## format = 'New request'
             cli_message = self.clisocket.recv(2048)
             print('\tReceive message from the client.')
@@ -84,7 +88,10 @@ class State(object):
                 self.clisocket.send(privatekey)
                 self.clisocket.send(address.encode('utf-8'))
                 self._current_state = 'Wait'
-
+            elif b'get balance' in cli_message:
+                balance = F.get_balance_from_name(cli_message.decode('utf-8').split()[-1])
+                self.clisocket.send(balance.encode('utf-8'))
+                self._current_state = 'Wait'
             else:
                 sockets[-1][0].send(b'New request !')
                 self._current_state = 'Pre_prepare'
@@ -148,6 +155,7 @@ class State(object):
 
         # Primary build block
         if self.primary :
+            # Commit success
             if agree>=self.limit:
                 # Create a block and add into blockchain(dump)
                 ## format = 'subsidy(int) cointype name typesig (addcoin)'
@@ -157,31 +165,22 @@ class State(object):
                     bc = Blockchain()
                     newBlock = F.send(comList[0].decode('utf-8'), comList[1].decode('utf-8'), comList[2].decode('utf-8'), int(comList[3].decode('utf-8')))
                     bc._block_put(newBlock)
+                    from_balance = F.get_balance_from_name(comList[0].decode('utf-8'))
+                    self.clisocket.send(from_balance.encode('utf-8'))
                 elif self.blockchain == None:
-                    print("create blockchain")
                     F.create_blockchain(int(comList[0].decode('utf-8')), comList[1].decode('utf-8'), comList[2].decode('utf-8'))
                     self.blockchain = 1
+                    self.clisocket.send("Add coin SUCCESS".encode('utf-8'))
                 else:
                     F.add_coin(int(comList[0].decode('utf-8')), comList[1].decode('utf-8'), comList[2].decode('utf-8'))
+                    self.clisocket.send("Add coin SUCCESS".encode('utf-8'))
+            # Commit failed
+            else:
+                self.clisocket.send("FAILED".encode('utf-8'))
 
 
-            # print 
-            name = 'Pierre'
-            bc = Blockchain()
-            wallets = Wallets()
-            address = wallets.get_address_from_name(name)
-            pubkey_hash = utils.address_to_pubkey_hash(address)
-            balance = dict()
-            UTXOs = bc.find_utxo(pubkey_hash)
 
-            for out in UTXOs:
-                if out.cointype not in balance.keys():
-                    balance[out.cointype] = 0 
-                balance[out.cointype] += out.value
-
-            print('Balance of {0}:'.format(name))
-            print('----------------------')
-            for c,b in balance.items():
-                print('{0}: {1}'.format(c, b))
             
         self._current_state = 'Wait'
+
+

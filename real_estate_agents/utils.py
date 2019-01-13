@@ -14,6 +14,27 @@ def get_client(str):
     return ls[-2]
 
 
+def get_balance_from_name(name):
+    bc = Blockchain()
+
+    wallets = Wallets()
+    address = wallets.get_address_from_name(name)
+
+    pubkey_hash = utils.address_to_pubkey_hash(address)
+    balance = dict()
+    UTXOs = bc.find_utxo(pubkey_hash)
+
+    for out in UTXOs:
+        if out.cointype not in balance.keys():
+            balance[out.cointype] = 0 
+        balance[out.cointype] += out.value
+
+    data = ''
+    for k,v in balance.items():
+        data = data + k + ':$' + str(v)  + '\n'
+    return data
+
+
 def get_balance(address):
     bc = Blockchain()
 
@@ -41,7 +62,6 @@ def create_wallet(name):
 
 
 def create_blockchain(subsidy, cointype, name):
-
     wallets = Wallets()
     address = wallets.get_address_from_name(name)
     bc = Blockchain(subsidy, cointype, address)
