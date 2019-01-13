@@ -8,6 +8,9 @@ The  reference pages of PBFT/BFT go here.
 
 ## Concepts about Our projects
 
+### Consortium Chain
+Consortium blockchains emerged as an interesting architecture concept that benefits from the efficiency of each transaction and privacy of private blockchains, while leveraging the decentralized governance of public blockchains. As opposed to the public chain, Consortium chain use PBFT(Practical Byzantine fault tolerance) where only the primary user can generate the block while some specific users (called servers here) can verify the block, which is time-saving.
+
 ### Weakness of BFT
 The members should be pre-defined and identified rather than participating at will at any time like POW. Moreover, it is considered that the upper bound of the number of nodes is 100, so it is hard to implement on the public blockchain. It is rather suitable for private blockchain or consortium blockchain. FOr example, the famous consortium blockchain 'Hyperledger fabric' utilizes PBFT. 
 
@@ -55,6 +58,7 @@ There are various reference websites categorized by their objectives.
 
 ### Consortium Blockchain
 * [Insider](https://www.inside.com.tw/article/14233-consortium-blockchain-b2b-bitcoin-peer?fbclid=IwAR0e4Ih6ALkTQ2l6hjSzPh9-seJCxZ5NHoyacIxe3D-lgyyeHnN3hgt9Cws)
+* [Paper](https://www.thinkmind.org/download.php?articleid=tele_v11_n12_2018_5)
 
 ### Implementation
 * [HoneyBadgerBFT-Python](https://github.com/initc3/HoneyBadgerBFT-Python/)
