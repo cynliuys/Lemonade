@@ -35,6 +35,9 @@ First of all, all the evaluation nodes elect a 'primary'(like a leader) to be re
   * wait until 2f+1 commits and reply back to client
   * if timeout, change view, elect a new primary, keep the information before and go back to step1..
 
+### Multi-coin
+By representing a house as a pile of tokens, it is possible that a house can be owned by hundreds of people as long as they have the corresponding tokens. In detail, when an arbitrary client want his or her house to be on the blockchain, the client can send a request to the primary node to ask for the type signature. Once acquiring the type signature, the client can start to trade the coins to other users ,or on the other hand, receive other coins from other users.
+
 #### How to solve the problem of view change 
 
 'View change' stage ensures that the whole system can still work even though the primary is the node who is at fault. If one's timeout happens, the node can broadcast the signal 'view-change' to all the other nodes. If the v+1 node receive more than 2f+1 view-change signal (include itself), new-view happens, and the v+1 node broadcast to all the evaluation nodes that it becomes the new primary.
