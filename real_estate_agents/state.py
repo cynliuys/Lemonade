@@ -44,7 +44,8 @@ class State(object):
         self._current_state = 'Wait'
         self.number = number
         self.primary = primary
-        self.clisocket = clisocket
+        self.client_socket = clisocket
+        self.clisocket = None
         self.false_tolerance = (number-1)//3
         self.limit = self.number - 1 - self.false_tolerance
         self.key = ServerKey()
@@ -75,6 +76,9 @@ class State(object):
             ## format = 'Create wallet name'
             ## format = 'get balance name'
             ## format = 'New request'
+            self.client_socket.listen(0)
+            client, _ = self.client_socket.accept()
+            self.clisocket = client
             cli_message = self.clisocket.recv(2048)
             print('\tReceive message from the client.')
 
@@ -83,10 +87,13 @@ class State(object):
             elif b'Create wallet' in cli_message:
                 data = cli_message.decode('utf-8')
                 data = data.split()
-                privatekey, address  = F.create_wallet(data[-1])
+                check, privatekey, address  = F.create_wallet(data[-1])
                 # send 2 times, encode by 'utf-8'
-                self.clisocket.send(privatekey)
-                self.clisocket.send(address.encode('utf-8'))
+                if check:
+                    self.clisocket.send(privatekey)
+                    self.clisocket.send(address.encode('utf-8'))
+                else:
+                    self.clisocket.send(b'False')
                 self._current_state = 'Wait'
             elif b'get balance' in cli_message:
                 balance = F.get_balance_from_name(cli_message.decode('utf-8').split()[-1])

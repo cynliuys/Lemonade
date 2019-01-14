@@ -8,8 +8,8 @@ class Wallets(object):
         wallets (dict): a wallets dict.
     """
 
-    wallet_file = '/Users/cynthialiu/Desktop/Lemonade/database/wallet.dat'
-    namelist_file = '/Users/cynthialiu/Desktop/Lemonade/database/namelist.dat'
+    wallet_file = '../database/wallet.dat'
+    namelist_file = '../database/namelist.dat'
 
     def __init__(self):
 

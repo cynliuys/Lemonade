@@ -64,9 +64,6 @@ if __name__ == "__main__":
     if primary:
         clisocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         clisocket.bind(('',args.client_port))
-        clisocket.listen(0)
-        client, _ = clisocket.accept()
-        clisocket = client
 
         print('client socket(port={}) is created'.format(port))
         MyState = State(primary=primary, number=args.number, clisocket=clisocket)

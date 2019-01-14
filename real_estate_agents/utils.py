@@ -18,6 +18,8 @@ def get_balance_from_name(name):
     bc = Blockchain()
 
     wallets = Wallets()
+    if not name in wallets.namelist.keys():
+        return ''
     address = wallets.get_address_from_name(name)
 
     pubkey_hash = utils.address_to_pubkey_hash(address)
@@ -54,11 +56,14 @@ def get_balance(address):
 
 def create_wallet(name):
     wallets = Wallets()
+    if name in wallets.namelist.keys():
+        return False, 1,1
+
     wallet = Wallet(name)
     address = wallet.address
     wallets.add_wallet(address, wallet)
     wallets.save_to_file()
-    return wallet._private_key, wallet._address
+    return True, wallet._private_key, wallet._address
 
 
 def create_blockchain(subsidy, cointype, name):
@@ -108,17 +113,23 @@ def evaluate(command, key):
     command = command.split(b'   ')
     print(command)
     if command[-1] == b'(addcoin)':
+        wallets = Wallets()
+        if not command[2].decode('utf-8') in wallets.namelist.keys():
+            return 'Disagree'
         if key.verifyTypeSign(command[1].decode('utf-8'), command[3]):
             return 'Agree'
         return 'Disagree'
 
     elif command[-1] == b'(send)':
         bc = Blockchain()
+        wallets = Wallets()
+        if not command[0].decode('utf-8') in wallets.namelist.keys():
+            return 'Disagree'
+        if not command[1].decode('utf-8') in wallets.namelist.keys():
+            return 'Disagree'
         if not check_tx(bc, command[0].decode('utf-8'), command[2].decode('utf-8'), command[3].decode('utf-8')):
             return 'Disagree'
-        wallets = Wallets()
         wallet = wallets.get_wallet_from_name(command[0].decode('utf-8'))
-        
         '''Wallet public key not good
         vk = ecdsa.VerifyingKey.from_string(wallet._public_key, curve=ecdsa.SECP256k1)
         if not vk.verify(command[-2], 'yes'):
