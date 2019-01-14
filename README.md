@@ -10,13 +10,23 @@ $ cd control_panel
 $ bash run.sh
 ```
 
-Then open four servers which should be real estate agents
+Then open four terminal to run four servers (which should be set by real estate agents).
 ```bash
 $ cd real_estate_agents
+$ bash run1.sh
 ```
 ```bash
-$ bash run1.sh
+$ cd real_estate_agents
+$ bash run2.sh
+```
+```bash
+$ cd real_estate_agents
+$ bash run3.sh
+```
+```bash
+$ cd real_estate_agents
+$ bash run4.sh
 ```
 
 ### Client
-
+If the client and server are not on the same host, we should change the 'HOST' into server's fixed IP address in client/client.py
