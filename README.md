@@ -1,4 +1,4 @@
-# NMLab final project: Housing Agency System
+# NMLab final project : Housing Agency System
 
 ## How to run the project?
 

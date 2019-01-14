@@ -29,7 +29,7 @@ import codecs
 import binascii
 import ecdsa
 
-HOST = '140.112.18.209'
+HOST = ''
 port = 10010
 
 def createType(s, coinType):
