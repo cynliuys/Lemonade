@@ -1,13 +1,12 @@
-# NMLAB final project: Housing Agency System
+# NMLab final project: Housing Agency System
 
-## How to run code
+## How to run the project?
 
-### Server
-First, we should open the control panel
+## Server
+It is needed to install some libraries on your computer in advance. (ex.numpy, ecdsa... )
+First, we should open the control panel of servers.
 ```bash
 $ cd control_panel
-```
-```bash
 $ bash run.sh
 ```
 
