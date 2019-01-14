@@ -3,7 +3,7 @@
 ## How to run the project?
 
 ## Server
-It is needed to install some libraries on your computer in advance. (ex.numpy, ecdsa... )
+It is required to install some libraries on your computer in advance. (ex.numpy, ecdsa... )
 First, we should open the control panel of servers.
 ```bash
 $ cd control_panel
