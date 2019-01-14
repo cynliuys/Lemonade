@@ -10,7 +10,7 @@ $ cd control_panel
 $ bash run.sh
 ```
 
-Then open four terminal to run four servers (which should be set by real estate agents).
+Then open four terminals to run four servers (which should be set by real estate agents).
 ```bash
 $ cd real_estate_agents
 $ bash run1.sh
